@@ -7,7 +7,10 @@ class User(AbstractUser):
     email = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
     number_plate = models.CharField(max_length=50, unique=True)
+    reset_token = models.CharField(max_length=100, null=True, blank=True)
+    reset_token_expires_at = models.DateTimeField(null=True, blank=True)
     username = None
+
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

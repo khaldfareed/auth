@@ -134,3 +134,30 @@ AUTH_USER_MODEL = 'users.User'
 
 CORS_ORIGIN_ALLOW_ALL = True # FRONTEND PORT ACCESS
 CORS_ALLOW_CREDENTIALS = True # fCOOKIES FOR FRONTEND
+
+
+############ Email settings
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.office365.com'  # Outlook SMTP server
+EMAIL_PORT = 587  # TLS port
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False  # Outlook uses TLS, not SSL
+EMAIL_HOST_USER = 'KhaledCse2024@outlook.com'  # Your Outlook email address
+EMAIL_HOST_PASSWORD = 'KhaledCse123'  # Your Outlook email password
+DEFAULT_FROM_EMAIL = 'KhaledCse2024@outlook.com'  # Default sender email
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}

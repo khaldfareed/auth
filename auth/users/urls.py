@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import RegisterAPIView, LoginAPIView, UserView, LogoutView, ReserveSlotAPIView, ActivateSlotAPIView, ExitSlotAPIView, ReservationHistoryAPIView, FreeSlotsAPIView, ActiveSlotsAPIView
+from .views import RegisterAPIView, LoginAPIView, UserView, LogoutView, ReserveSlotAPIView, ActivateSlotAPIView, ExitSlotAPIView, ReservationHistoryAPIView, FreeSlotsAPIView, ActiveSlotsAPIView, PasswordResetRequestAPIView, PasswordResetAPIView
+
 
 urlpatterns = [
     path('register/', RegisterAPIView.as_view()),
@@ -11,5 +12,7 @@ urlpatterns = [
     path('exit/<str:code>/', ExitSlotAPIView.as_view()),
     path('history/', ReservationHistoryAPIView.as_view()),
     path('freeslots/', FreeSlotsAPIView.as_view()),
-    path('active/', ActiveSlotsAPIView.as_view()),  # Added the new endpoint
+    path('active/', ActiveSlotsAPIView.as_view()),
+    path('password-reset-request/', PasswordResetRequestAPIView.as_view(), name='password-reset-request'),
+    path('password-reset/', PasswordResetAPIView.as_view(), name='password-reset'),
 ]
