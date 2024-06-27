@@ -1,24 +1,28 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, Reservation
+
+class ReservationSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+
+    class Meta:
+        model = Reservation
+        fields = ['id', 'reservation_code', 'reserved_at', 'activated_at', 'exited_at', 'user']
+        read_only_fields = ['id', 'reservation_code', 'reserved_at', 'user']
 
 class UserSerializer(serializers.ModelSerializer):
+    reservations = ReservationSerializer(many=True, read_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'name', 'email', 'password']
-
-    # hide password
+        fields = ['id', 'email', 'password', 'number_plate', 'reservations']
         extra_kwargs = {
-            'password': {'write_only':True}
+            'password': {'write_only': True}
         }
 
-
-    # hash passwords in the database, override default create function
     def create(self, validated_data):
-        #extract password
         password = validated_data.pop('password', None)
-        instance = self.Meta.model(**validated_data) #doesnt include password
-
+        instance = self.Meta.model(**validated_data)
         if password is not None:
-            instance.set_password(password) #hashes password
+            instance.set_password(password)
         instance.save()
         return instance
