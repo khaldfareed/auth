@@ -43,7 +43,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'https://your-frontend-domain.railway.app',
+    'https://cse-parking-site.up.railway.app/',
 ]
 
 ROOT_URLCONF = 'auth.urls'
