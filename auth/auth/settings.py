@@ -46,6 +46,10 @@ CORS_ALLOWED_ORIGINS = [
     'https://cse-parking-site.up.railway.app/',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://cse-parking-site.up.railway.app/',
+]
+
 ROOT_URLCONF = 'auth.urls'
 
 
