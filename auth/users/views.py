@@ -202,10 +202,10 @@ class PasswordResetRequestAPIView(APIView):
             user.reset_token = reset_token
             user.reset_token_expires_at = reset_token_expires_at
             user.save()
-            reset_link = f"http://yourfrontend.com/reset-password/{reset_token}"
+            reset_code = f"Reset Code is: {reset_token}"
             send_mail(
                 'Password Reset Request',
-                f'Click the link to reset your password: {reset_link}',
+                f'Reset Code is: {reset_code}',
                 'KhaledCse2024@outlook.com',
                 [user.email],
                 fail_silently=False,
