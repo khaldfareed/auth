@@ -197,21 +197,20 @@ class PasswordResetRequestAPIView(APIView):
         email = serializer.validated_data['email']
         user = User.objects.filter(email=email).first()
         if user:
-            reset_token = secrets.token_urlsafe(20)
+            reset_token = '{:04d}'.format(random.randint(0, 9999))  # Generate 4-digit token
             reset_token_expires_at = timezone.now() + datetime.timedelta(hours=1)
             user.reset_token = reset_token
             user.reset_token_expires_at = reset_token_expires_at
             user.save()
-            reset_code = f"Reset Code is: {reset_token}"
             send_mail(
                 'Password Reset Request',
-                f'Reset Code is: {reset_code}',
+                f'Your password reset code is: {reset_token}',
                 'KhaledCse2024@outlook.com',
                 [user.email],
                 fail_silently=False,
             )
             logger.info(f'Password reset email sent to {user.email}')
-        return Response({'message': 'If your email is registered, you will receive a password reset link.'}, status=status.HTTP_200_OK)
+        return Response({'message': 'If your email is registered, you will receive a password reset code.'}, status=status.HTTP_200_OK)
 
 class PasswordResetAPIView(APIView):
     def post(self, request):
