@@ -132,7 +132,8 @@ AUTH_USER_MODEL = 'users.User'
 
 CORS_ORIGIN_ALLOW_ALL = True # FRONTEND PORT ACCESS
 CORS_ALLOW_CREDENTIALS = True # fCOOKIES FOR FRONTEND
-
+CSRF_COOKIE_SECURE = True  # Ensure cookies are secure if using HTTPS
+CSRF_COOKIE_HTTPONLY = True
 
 ############ Email settings
 
