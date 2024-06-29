@@ -132,7 +132,7 @@ class ActivateSlotOuterAPIView(APIView):
             reservation.save()
             logger.info("Reservation activated successfully: %s at the outer screen", code)
 
-            return Response({'message': 'Activated'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Welcome to the parking'}, status=status.HTTP_200_OK)
 
         except Reservation.DoesNotExist:
             logger.warning("Invalid reservation code: %s", code)
