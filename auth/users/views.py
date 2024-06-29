@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 # Define your secret key and token expiration settings in your Django settings
 JWT_SECRET = settings.JWT_SECRET
 JWT_ALGORITHM = settings.JWT_ALGORITHM
-JWT_EXPIRATION_DELTA = settings.JWT_EXPIRATION_DELTA
 
 # Helper function to decode JWT tokens
 def decode_jwt(token):
