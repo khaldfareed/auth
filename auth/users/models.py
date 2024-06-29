@@ -49,7 +49,7 @@ class Reservation(models.Model):
     activated_at = models.DateTimeField(null=True, blank=True)
     exited_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)  # Added expires_at field
-    duration = models.FloatField(null=True, blank=True)
+    duration = models.FloatField(null=True, blank=True)  # New duration field
     def __str__(self):
         return f"Reservation {self.reservation_code} by {self.user.email}"
 
@@ -71,4 +71,10 @@ class Reservation(models.Model):
     def save(self, *args, **kwargs):
         if not self.reservation_code:
             self.reservation_code = Reservation.generate_reservation_code()
+
+        if self.exited_at and self.activated_at:
+            self.duration = self.calculate_duration()
+        else:
+            self.duration = None
+
         super().save(*args, **kwargs)
