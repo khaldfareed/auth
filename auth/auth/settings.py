@@ -43,13 +43,13 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'https://cse-parking-site.up.railway.app/',
-    'https://parking-gate-control.up.railway.app/',
+    'https://cse-parking-site.up.railway.app',
+    'https://parking-gate-control.up.railway.app',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://cse-parking-site.up.railway.app/',
-    'https://parking-gate-control.up.railway.app/',
+    'https://cse-parking-site.up.railway.app',
+    'https://parking-gate-control.up.railway.app',
 ]
 
 ROOT_URLCONF = 'auth.urls'
