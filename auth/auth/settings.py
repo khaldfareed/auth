@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import datetime
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -178,6 +179,7 @@ LOGGING = {
 # JWT settings
 JWT_SECRET = 'django-insecure-8-^pytn(yaw9f0k-v_o+ttzc(zgq&4mq%lilh8+we-d7p!hws-'
 JWT_ALGORITHM = 'HS256'
+JWT_EXPIRATION_DELTA = datetime.timedelta(minutes=1440)
 
 
 APPEND_SLASH = False
