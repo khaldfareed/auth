@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterAPIView, LoginAPIView, UserView, LogoutView, ReserveSlotAPIView, ActivateSlotOuterAPIView, ExitSlotInnerAPIView, ReservationHistoryAPIView, FreeSlotsAPIView, ActiveSlotsAPIView, PasswordResetRequestAPIView, PasswordResetAPIView
+from .views import RegisterAPIView, LoginAPIView, UserView, LogoutView, ReserveSlotAPIView, ActivateSlotAPIView, ExitSlotAPIView, ReservationHistoryAPIView, FreeSlotsAPIView, ActiveSlotsAPIView, PasswordResetRequestAPIView, PasswordResetAPIView
 
 
 urlpatterns = [
@@ -8,8 +8,8 @@ urlpatterns = [
     path('user/', UserView.as_view(), name='user'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('reserve/', ReserveSlotAPIView.as_view(), name='reserve'),
-    path('activate/<str:code>/', ActivateSlotOuterAPIView.as_view(), name='activate'),
-    path('exit/<str:code>/', ExitSlotInnerAPIView.as_view(), name='exit'),
+    path('activate/<str:code>/', ActivateSlotAPIView.as_view(), name='activate'),
+    path('exit/<str:code>/', ExitSlotAPIView.as_view(), name='exit'),
     path('history/', ReservationHistoryAPIView.as_view(), name='history'),
     path('freeslots/', FreeSlotsAPIView.as_view(), name='freeslots'),
     path('active/', ActiveSlotsAPIView.as_view(), name='active'),
