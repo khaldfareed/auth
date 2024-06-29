@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import User, Reservation
+from django.core.validators import MinLengthValidator
 
 class ReservationSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
@@ -16,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'password', 'number_plate', 'reservations']
         extra_kwargs = {
-            'password': {'write_only': True}
+            'password': {'write_only': True, 'validators': [MinLengthValidator(8)]}
         }
 
     def create(self, validated_data):
@@ -27,10 +28,9 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 class PasswordResetSerializer(serializers.Serializer):
     reset_token = serializers.CharField()
-    new_password = serializers.CharField()
+    new_password = serializers.CharField(validators=[MinLengthValidator(8)])

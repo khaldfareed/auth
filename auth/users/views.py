@@ -11,8 +11,26 @@ import random
 import logging
 from .serializers import PasswordResetRequestSerializer, PasswordResetSerializer
 from django.core.mail import send_mail
+from django.conf import settings
+from rest_framework.permissions import IsAuthenticated
 
 logger = logging.getLogger(__name__)
+
+# Define your secret key and token expiration settings in your Django settings
+JWT_SECRET = settings.JWT_SECRET
+JWT_ALGORITHM = settings.JWT_ALGORITHM
+JWT_EXPIRATION_DELTA = settings.JWT_EXPIRATION_DELTA
+
+# Helper function to decode JWT tokens
+def decode_jwt(token):
+    try:
+        return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        logger.warning('Expired JWT token')
+        raise AuthenticationFailed("Unauthenticated")
+    except jwt.InvalidTokenError:
+        logger.warning('Invalid JWT token')
+        raise AuthenticationFailed("Unauthenticated")
 
 class RegisterAPIView(APIView):
     def post(self, request):
@@ -34,10 +52,10 @@ class LoginAPIView(APIView):
             raise AuthenticationFailed('Invalid credentials')
         payload = {
             'id': user.id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            'exp': datetime.datetime.utcnow() + JWT_EXPIRATION_DELTA,
             'iat': datetime.datetime.utcnow()
         }
-        token = jwt.encode(payload, 'secret', algorithm='HS256')
+        token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
         response = Response()
         response.set_cookie(key='jwt', value=token, httponly=True)
         response.data = {'jwt': token}
@@ -45,16 +63,14 @@ class LoginAPIView(APIView):
         return response
 
 class UserView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         token = request.COOKIES.get('jwt')
         if not token:
             logger.warning('Unauthenticated access attempt')
             raise AuthenticationFailed("Unauthenticated")
-        try:
-            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            logger.warning('Expired JWT token')
-            raise AuthenticationFailed("Unauthenticated")
+        payload = decode_jwt(token)
         user = User.objects.filter(id=payload['id']).first()
         if user:
             serializer = UserSerializer(user)
@@ -64,6 +80,8 @@ class UserView(APIView):
         raise AuthenticationFailed("Unauthenticated")
 
 class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         response = Response()
         response.delete_cookie('jwt')
@@ -72,16 +90,14 @@ class LogoutView(APIView):
         return response
 
 class ReserveSlotAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         token = request.COOKIES.get('jwt')
         if not token:
             logger.warning('Unauthenticated access attempt')
             raise AuthenticationFailed("Unauthenticated")
-        try:
-            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            logger.warning('Expired JWT token')
-            raise AuthenticationFailed("Unauthenticated")
+        payload = decode_jwt(token)
         user = User.objects.get(id=payload['id'])
 
         existing_reservation = Reservation.objects.filter(
@@ -109,26 +125,16 @@ class ReserveSlotAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class ActivateSlotAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, code):
         logger.debug("Received request to activate slot with code: %s", code)
         token = request.COOKIES.get('jwt')
         if not token:
             logger.warning("No JWT token found in cookies")
             raise AuthenticationFailed("Unauthenticated")
-
-        try:
-            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-            logger.debug("JWT token decoded successfully")
-        except jwt.ExpiredSignatureError:
-            logger.warning("JWT token has expired")
-            raise AuthenticationFailed("Unauthenticated")
-
-        try:
-            user = User.objects.get(id=payload['id'])
-            logger.debug("User retrieved: %s", user.username)
-        except User.DoesNotExist:
-            logger.error("User not found with id: %s", payload['id'])
-            raise AuthenticationFailed("Unauthenticated")
+        payload = decode_jwt(token)
+        user = User.objects.get(id=payload['id'])
 
         try:
             reservation = Reservation.objects.get(reservation_code=code, user=user)
@@ -154,26 +160,16 @@ class ActivateSlotAPIView(APIView):
             return Response({'message': 'Invalid code'}, status=status.HTTP_400_BAD_REQUEST)
 
 class ExitSlotAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, code):
         logger.debug("Received request to exit slot with code: %s", code)
         token = request.COOKIES.get('jwt')
         if not token:
             logger.warning("No JWT token found in cookies")
             raise AuthenticationFailed("Unauthenticated")
-
-        try:
-            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-            logger.debug("JWT token decoded successfully")
-        except jwt.ExpiredSignatureError:
-            logger.warning("JWT token has expired")
-            raise AuthenticationFailed("Unauthenticated")
-
-        try:
-            user = User.objects.get(id=payload['id'])
-            logger.debug("User retrieved: %s", user.username)
-        except User.DoesNotExist:
-            logger.error("User not found with id: %s", payload['id'])
-            raise AuthenticationFailed("Unauthenticated")
+        payload = decode_jwt(token)
+        user = User.objects.get(id=payload['id'])
 
         try:
             reservation = Reservation.objects.get(reservation_code=code, user=user)
@@ -197,17 +193,14 @@ class ExitSlotAPIView(APIView):
             return Response({'message': 'Invalid code'}, status=status.HTTP_400_BAD_REQUEST)
 
 class ReservationHistoryAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         token = request.COOKIES.get('jwt')
         if not token:
             logger.warning('Unauthenticated access attempt')
             raise AuthenticationFailed("Unauthenticated")
-        try:
-            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            logger.warning('Expired JWT token')
-            raise AuthenticationFailed("Unauthenticated")
-
+        payload = decode_jwt(token)
         user = User.objects.get(id=payload['id'])
         reservations = Reservation.objects.filter(user=user).order_by('-reserved_at')
         serializer = ReservationSerializer(reservations, many=True)
