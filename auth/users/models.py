@@ -50,6 +50,7 @@ class Reservation(models.Model):
     exited_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)  # Added expires_at field
     duration = models.FloatField(null=True, blank=True)  # New duration field
+
     def __str__(self):
         return f"Reservation {self.reservation_code} by {self.user.email}"
 
