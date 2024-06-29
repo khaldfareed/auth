@@ -108,31 +108,16 @@ class ReserveSlotAPIView(APIView):
         logger.info(f'Reservation created for user {user.email} with code {reservation_code}')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class ActivateSlotAPIView(APIView):
+class ActivateSlotOuterAPIView(APIView):
+    """
+    API endpoint to activate a reserved code at the outer screen.
+    """
     def post(self, request, code):
-        logger.debug("Received request to activate slot with code: %s", code)
-        token = request.COOKIES.get('jwt')
-        if not token:
-            logger.warning("No JWT token found in cookies")
-            raise AuthenticationFailed("Unauthenticated")
+        logger.debug("Received request to activate slot with code: %s at the outer screen", code)
 
         try:
-            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-            logger.debug("JWT token decoded successfully")
-        except jwt.ExpiredSignatureError:
-            logger.warning("JWT token has expired")
-            raise AuthenticationFailed("Unauthenticated")
-
-        try:
-            user = User.objects.get(id=payload['id'])
-            logger.debug("User retrieved: %s", user.username)
-        except User.DoesNotExist:
-            logger.error("User not found with id: %s", payload['id'])
-            raise AuthenticationFailed("Unauthenticated")
-
-        try:
-            reservation = Reservation.objects.get(reservation_code=code, user=user)
-            logger.debug("Reservation found with code: %s for user: %s", code, user.username)
+            reservation = Reservation.objects.get(reservation_code=code)
+            logger.debug("Reservation found with code: %s", code)
 
             if reservation.activated_at:
                 logger.info("Reservation already activated: %s", code)
@@ -145,7 +130,7 @@ class ActivateSlotAPIView(APIView):
             reservation.activated_at = timezone.now()
             reservation.expires_at = None  # Clear the expiration time once activated
             reservation.save()
-            logger.info("Reservation activated successfully: %s", code)
+            logger.info("Reservation activated successfully: %s at the outer screen", code)
 
             return Response({'message': 'Activated'}, status=status.HTTP_200_OK)
 
@@ -153,31 +138,16 @@ class ActivateSlotAPIView(APIView):
             logger.warning("Invalid reservation code: %s", code)
             return Response({'message': 'Invalid code'}, status=status.HTTP_400_BAD_REQUEST)
 
-class ExitSlotAPIView(APIView):
+class ExitSlotInnerAPIView(APIView):
+    """
+    API endpoint to exit a reserved code at the inner screen.
+    """
     def post(self, request, code):
-        logger.debug("Received request to exit slot with code: %s", code)
-        token = request.COOKIES.get('jwt')
-        if not token:
-            logger.warning("No JWT token found in cookies")
-            raise AuthenticationFailed("Unauthenticated")
+        logger.debug("Received request to exit slot with code: %s at the inner screen", code)
 
         try:
-            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-            logger.debug("JWT token decoded successfully")
-        except jwt.ExpiredSignatureError:
-            logger.warning("JWT token has expired")
-            raise AuthenticationFailed("Unauthenticated")
-
-        try:
-            user = User.objects.get(id=payload['id'])
-            logger.debug("User retrieved: %s", user.username)
-        except User.DoesNotExist:
-            logger.error("User not found with id: %s", payload['id'])
-            raise AuthenticationFailed("Unauthenticated")
-
-        try:
-            reservation = Reservation.objects.get(reservation_code=code, user=user)
-            logger.debug("Reservation found with code: %s for user: %s", code, user.username)
+            reservation = Reservation.objects.get(reservation_code=code)
+            logger.debug("Reservation found with code: %s", code)
 
             if reservation.exited_at:
                 logger.info("Reservation already exited: %s", code)
@@ -185,7 +155,7 @@ class ExitSlotAPIView(APIView):
 
             reservation.exited_at = timezone.now()
             reservation.save()
-            logger.info("Reservation exited successfully: %s", code)
+            logger.info("Reservation exited successfully: %s at the inner screen", code)
 
             duration = reservation.calculate_duration()
             logger.debug("Reservation duration calculated: %s", duration)
@@ -195,6 +165,7 @@ class ExitSlotAPIView(APIView):
         except Reservation.DoesNotExist:
             logger.warning("Invalid reservation code: %s", code)
             return Response({'message': 'Invalid code'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ReservationHistoryAPIView(APIView):
     def get(self, request):
