@@ -1,6 +1,4 @@
-import os
 from pathlib import Path
-import datetime
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -150,17 +148,6 @@ EMAIL_HOST_USER = 'KhaledCse2024@outlook.com'  # Your Outlook email address
 EMAIL_HOST_PASSWORD = 'KhaledCse123'  # Your Outlook email password
 DEFAULT_FROM_EMAIL = 'KhaledCse2024@outlook.com'  # Default sender email
 
-# Django Rest Framework
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
-}
-
 
 LOGGING = {
     'version': 1,
@@ -175,11 +162,6 @@ LOGGING = {
         'level': 'DEBUG',
     },
 }
-
-# JWT settings
-JWT_SECRET = 'django-insecure-8-^pytn(yaw9f0k-v_o+ttzc(zgq&4mq%lilh8+we-d7p!hws-'
-JWT_ALGORITHM = 'HS256'
-JWT_EXPIRATION_DELTA = datetime.timedelta(minutes=1440)
 
 
 APPEND_SLASH = False
