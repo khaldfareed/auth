@@ -85,6 +85,7 @@ class ReserveSlotAPIView(APIView):
             raise AuthenticationFailed("Unauthenticated")
         user = User.objects.get(id=payload['id'])
 
+        # Check if the user already has an active or non-exited reservation
         existing_reservation = Reservation.objects.filter(
             user=user,
             exited_at__isnull=True,
@@ -92,29 +93,26 @@ class ReserveSlotAPIView(APIView):
         ).first()
 
         if existing_reservation:
-            # Check if the existing reservation is expired
-            if existing_reservation.expires_at < timezone.now():
-                # If expired, allow the user to create a new reservation
-                existing_reservation.exited_at = timezone.now()
-                existing_reservation.save()
-            else:
-                logger.info(f'User {user.email} tried to reserve another slot while having an active reservation')
-                return Response({
-                    'message': 'You already have an active reservation. You cannot reserve another slot until it is exited or expired.'
-                }, status=status.HTTP_400_BAD_REQUEST)
+            logger.info(f'User {user.email} tried to reserve another slot while having an active reservation')
+            return Response({
+                'message': 'You already have an active reservation. You cannot reserve another slot until it is exited or expired.'},
+                status=status.HTTP_400_BAD_REQUEST)
 
-
+        # Check for available slots
         active_reservations = Reservation.objects.filter(exited_at__isnull=True, activated_at__isnull=False).count()
         if active_reservations >= 4:
             logger.info('All slots are reserved')
             return Response({'message': 'All slots are reserved'}, status=status.HTTP_400_BAD_REQUEST)
 
-        expires_at = timezone.now() + timedelta(hours=1)
+        expires_at = timezone.now() + datetime.timedelta(hours=1)
+
+        # Generate a 4-digit reservation code
         reservation_code = '{:04d}'.format(random.randint(0, 9999))
         reservation = Reservation.objects.create(user=user, reservation_code=reservation_code, expires_at=expires_at)
         serializer = ReservationSerializer(reservation)
         logger.info(f'Reservation created for user {user.email} with code {reservation_code}')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 class ActivateSlotOuterAPIView(APIView):
     """
