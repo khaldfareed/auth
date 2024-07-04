@@ -95,13 +95,15 @@ class ReserveSlotAPIView(APIView):
             if active_reservation.activated_at:
                 logger.info(f'User {user.email} tried to generate another reservation code without exiting the last one')
                 return Response({
-                    'message': 'You cannot generate another reservation code until you (activate and exit) the current one, or until one hour has passed without (activate and exit).'
+                    'message': 'You cannot get another reservation code until you exit.'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             if active_reservation.expires_at and active_reservation.expires_at > timezone.now():
+                reservation_code = active_reservation.reservation_code
+                expires_at = active_reservation.expires_at.strftime(' %H:%M '+'at'+' %d-%b-%Y')  # Format datetime without microseconds and timezone
                 logger.info(f'User {user.email} tried to generate another reservation code without activating the last one')
                 return Response({
-                    'message': 'You cannot generate another reservation code until you (activate and exit) the current one, or until one hour has passed without (activate and exit).'
+                    'message': 'You already have a reservation code: {' + f' {reservation_code} ' + '} and it expires at:' + f'{expires_at}'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if there are already 4 active reservations globally
