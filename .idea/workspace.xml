@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b7a195b5-2434-4b45-a213-740f9e275269" name="Changes" comment="Update views.py&#10;&#10;reset-code">
-      <change beforePath="$PROJECT_DIR$/auth/db.sqlite3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/users/migrations/0001_initial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/auth/users/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/users/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/auth/users/views.py" afterDir="false" />
-    </list>
+    <list default="true" id="b7a195b5-2434-4b45-a213-740f9e275269" name="Changes" comment="Update views.py&#10;&#10;fina" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -88,15 +83,7 @@
       <workItem from="1720032972979" duration="3663000" />
       <workItem from="1720040949636" duration="19680000" />
       <workItem from="1720066010004" duration="685000" />
-      <workItem from="1720103376076" duration="2733000" />
-    </task>
-    <task id="LOCAL-00019" summary="Merge remote-tracking branch 'origin/master'">
-      <option name="closed" value="true" />
-      <created>1719540428097</created>
-      <option name="number" value="00019" />
-      <option name="presentableId" value="LOCAL-00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1719540428097</updated>
+      <workItem from="1720103376076" duration="2990000" />
     </task>
     <task id="LOCAL-00020" summary="Merge remote-tracking branch 'origin/master'">
       <option name="closed" value="true" />
@@ -482,7 +469,15 @@
       <option name="project" value="LOCAL" />
       <updated>1720065685531</updated>
     </task>
-    <option name="localTasksCounter" value="68" />
+    <task id="LOCAL-00068" summary="Update views.py&#10;&#10;fina">
+      <option name="closed" value="true" />
+      <created>1720108577507</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1720108577507</updated>
+    </task>
+    <option name="localTasksCounter" value="69" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -504,6 +499,7 @@
     <MESSAGE value="Merge remote-tracking branch 'origin/reset'" />
     <MESSAGE value="Merge remote-tracking branch 'origin/master'" />
     <MESSAGE value="Update views.py&#10;&#10;reset-code" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update views.py&#10;&#10;reset-code" />
+    <MESSAGE value="Update views.py&#10;&#10;fina" />
+    <option name="LAST_COMMIT_MESSAGE" value="Update views.py&#10;&#10;fina" />
   </component>
 </project>
