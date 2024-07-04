@@ -11,6 +11,8 @@ class ReservationInline(admin.TabularInline):
     def duration(self, obj):
         if obj.activated_at and obj.exited_at:
             return (obj.exited_at - obj.activated_at).total_seconds() / 60
+        elif obj.activated_at:
+            return (timezone.now() - obj.activated_at).total_seconds() / 60
         else:
             return None
     duration.short_description = 'Duration (minutes)'
