@@ -10,9 +10,7 @@ class ReservationInline(admin.TabularInline):
 
     def duration(self, obj):
         if obj.activated_at and obj.exited_at:
-            return (obj.exited_at - obj.activated_at).total_seconds() / 60  # Duration in minutes
-        elif obj.activated_at:
-            return (timezone.now() - obj.activated_at).total_seconds() / 60  # Duration in minutes
+            return (obj.exited_at - obj.activated_at).total_seconds() / 60
         else:
             return None
     duration.short_description = 'Duration (minutes)'
@@ -39,6 +37,8 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ('email', 'number_plate')
     ordering = ('email',)
     inlines = [ReservationInline]
+    filter_horizontal = ('groups', 'user_permissions')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
 
 class ReservationAdmin(admin.ModelAdmin):
     list_display = ('reservation_code', 'user', 'user_number_plate', 'reserved_at', 'activated_at', 'exited_at', 'is_active', 'duration')
@@ -53,9 +53,9 @@ class ReservationAdmin(admin.ModelAdmin):
 
     def duration(self, obj):
         if obj.activated_at and obj.exited_at:
-            return (obj.exited_at - obj.activated_at).total_seconds() / 60  # Duration in minutes
+            return (obj.exited_at - obj.activated_at).total_seconds() / 60
         elif obj.activated_at:
-            return (timezone.now() - obj.activated_at).total_seconds() / 60  # Duration in minutes
+            return (timezone.now() - obj.activated_at).total_seconds() / 60
         else:
             return None
     duration.short_description = 'Duration (minutes)'

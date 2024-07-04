@@ -1,12 +1,9 @@
-from django.contrib.auth.models import AbstractUser,BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
-import random
-
+import datetime
 
 class UserManager(BaseUserManager):
-    use_in_migrations = True
-
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('The Email field must be set')
@@ -19,63 +16,39 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
-
         return self.create_user(email, password, **extra_fields)
-class User(AbstractUser):
+
+class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
-    password = models.CharField(max_length=255)
-    number_plate = models.CharField(max_length=50, unique=True)
-    reset_token = models.CharField(max_length=4, null=True, blank=True)
-    reset_token_expires_at = models.DateTimeField(null=True, blank=True)
-    username = None
+    number_plate = models.CharField(max_length=20, unique=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(default=timezone.now)
+    reset_token = models.CharField(max_length=6, blank=True, null=True)
+    reset_token_expires_at = models.DateTimeField(blank=True, null=True)
+
+    objects = UserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
-
-    objects = UserManager()
 
     def __str__(self):
         return self.email
 
 class Reservation(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reservations')
+    user = models.ForeignKey(User, related_name='reservations', on_delete=models.CASCADE)
     reservation_code = models.CharField(max_length=4, unique=True)
     reserved_at = models.DateTimeField(auto_now_add=True)
-    activated_at = models.DateTimeField(null=True, blank=True)
-    exited_at = models.DateTimeField(null=True, blank=True)
-    expires_at = models.DateTimeField(null=True, blank=True)  # Added expires_at field
-    duration = models.FloatField(null=True, blank=True)  # New duration field
+    activated_at = models.DateTimeField(blank=True, null=True)
+    exited_at = models.DateTimeField(blank=True, null=True)
+    expires_at = models.DateTimeField(null=True, blank=True, default=timezone.now() + timezone.timedelta(hours=1))  # Allow NULL values
 
     def __str__(self):
-        return f"Reservation {self.reservation_code} by {self.user.email}"
+        return self.reservation_code
 
     def calculate_duration(self):
-        if self.exited_at and self.activated_at:
-            activated_at = self.activated_at.astimezone(timezone.utc) if self.activated_at.tzinfo else self.activated_at
-            exited_at = self.exited_at.astimezone(timezone.utc) if self.exited_at.tzinfo else self.exited_at
-            duration = (exited_at - activated_at).total_seconds() / 60  # Duration in minutes
-            return duration
-        else:
-            return None
-
-    def generate_reservation_code():
-        while True:
-            code = str(random.randint(1000, 9999))
-            if not Reservation.objects.filter(reservation_code=code).exists():
-                return code
-
-    def save(self, *args, **kwargs):
-        if not self.reservation_code:
-            self.reservation_code = Reservation.generate_reservation_code()
-
-        if self.exited_at and self.activated_at:
-            self.duration = self.calculate_duration()
-        else:
-            self.duration = None
-
-        super().save(*args, **kwargs)
+        if self.activated_at and self.exited_at:
+            return (self.exited_at - self.activated_at).total_seconds() / 60
+        elif self.activated_at:
+            return (timezone.now() - self.activated_at).total_seconds() / 60
+        return None

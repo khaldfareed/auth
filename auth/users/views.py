@@ -70,7 +70,7 @@ class LogoutView(APIView):
         logger.info('User logged out')
         return response
 
-
+#
 class ReserveSlotAPIView(APIView):
     def post(self, request):
         token = request.COOKIES.get('jwt')
@@ -91,10 +91,11 @@ class ReserveSlotAPIView(APIView):
             reserved_at__gte=timezone.now() - datetime.timedelta(hours=1)
         ).first()
 
-        if last_reservation:
-            logger.info(f'User {user.email} tried to generate another reservation code within one hour')
+        # Check if the last reservation is still active or hasn't expired
+        if last_reservation and (last_reservation.exited_at is None) and (last_reservation.activated_at is None and last_reservation.expires_at > timezone.now()):
+            logger.info(f'User {user.email} tried to generate another reservation code within one hour without activating or exiting the last one')
             return Response({
-                'message': 'You cannot generate another reservation code until one hour has passed.'
+                'message': 'You cannot generate another reservation code until you activate or exit the current one, or until one hour has passed.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if there are already 4 active reservations globally
@@ -115,6 +116,7 @@ class ReserveSlotAPIView(APIView):
         serializer = ReservationSerializer(reservation)
         logger.info(f'Reservation created for user {user.email} with code {reservation_code}')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 
 class ActivateSlotOuterAPIView(APIView):
@@ -147,6 +149,7 @@ class ActivateSlotOuterAPIView(APIView):
             logger.warning("Invalid reservation code: %s", code)
             return Response({'message': 'Invalid code'}, status=status.HTTP_400_BAD_REQUEST)
 
+
 class ExitSlotInnerAPIView(APIView):
     """
     API endpoint to exit a reserved code at the inner screen.
@@ -168,21 +171,6 @@ class ExitSlotInnerAPIView(APIView):
 
             duration = reservation.calculate_duration()
             logger.debug("Reservation duration calculated: %s", duration)
-
-            # Check if the user exited within the last hour
-            if reservation.reserved_at >= timezone.now() - datetime.timedelta(hours=1):
-                # Create a new reservation code for the user
-                expires_at = timezone.now() + datetime.timedelta(hours=1)
-                new_reservation_code = '{:04d}'.format(random.randint(0, 9999))
-                new_reservation = Reservation.objects.create(
-                    user=reservation.user,
-                    reservation_code=new_reservation_code,
-                    expires_at=expires_at,
-                    reserved_at=timezone.now()
-                )
-                serializer = ReservationSerializer(new_reservation)
-                logger.info(f'New reservation created for user {reservation.user.email} with code {new_reservation_code}')
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
 
             return Response({'message': 'Exited', 'duration': duration}, status=status.HTTP_200_OK)
 

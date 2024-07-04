@@ -4,11 +4,15 @@ from django.core.validators import MinLengthValidator
 
 class ReservationSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
+    duration = serializers.SerializerMethodField()
 
     class Meta:
         model = Reservation
-        fields = ['id', 'reservation_code', 'reserved_at', 'activated_at', 'exited_at', 'duration', 'user']
+        fields = ['id', 'reservation_code', 'expires_at', 'reserved_at', 'activated_at', 'exited_at', 'duration', 'user']
         read_only_fields = ['id', 'reservation_code', 'reserved_at', 'user']
+
+    def get_duration(self, obj):
+        return obj.calculate_duration()
 
 class UserSerializer(serializers.ModelSerializer):
     reservations = ReservationSerializer(many=True, read_only=True)
