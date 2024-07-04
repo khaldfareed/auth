@@ -85,18 +85,19 @@ class ReserveSlotAPIView(APIView):
 
         user = User.objects.get(id=payload['id'])
 
-        # Check if there is a recent reservation code generated for this user
+        # Check if there is an unactivated reservation code generated for this user
         last_reservation = Reservation.objects.filter(
             user=user,
-            reserved_at__gte=timezone.now() - datetime.timedelta(hours=1)
-        ).first()
+            exited_at__isnull=True
+        ).order_by('-reserved_at').first()
 
-        # Check if the last reservation is still active or hasn't expired
-        if last_reservation and (last_reservation.exited_at is None) and (last_reservation.activated_at is None and last_reservation.expires_at > timezone.now()):
-            logger.info(f'User {user.email} tried to generate another reservation code within one hour without activating or exiting the last one')
-            return Response({
-                'message': 'You cannot generate another reservation code until you activate or exit the current one, or until one hour has passed.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        if last_reservation:
+            if last_reservation.activated_at is None:
+                if last_reservation.expires_at and last_reservation.expires_at > timezone.now():
+                    logger.info(f'User {user.email} tried to generate another reservation code without activating the last one')
+                    return Response({
+                        'message': 'You cannot generate another reservation code until you activate or exit the current one, or until one hour has passed.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if there are already 4 active reservations globally
         active_reservations = Reservation.objects.filter(exited_at__isnull=True, activated_at__isnull=False).count()
