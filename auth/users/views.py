@@ -85,23 +85,28 @@ class ReserveSlotAPIView(APIView):
 
         user = User.objects.get(id=payload['id'])
 
-        # Check if there is an unactivated reservation code generated for this user
-        last_reservation = Reservation.objects.filter(
+        # Check if there is an active reservation code that has not been exited
+        active_reservation = Reservation.objects.filter(
             user=user,
             exited_at__isnull=True
         ).order_by('-reserved_at').first()
 
-        if last_reservation:
-            if last_reservation.activated_at is None:
-                if last_reservation.expires_at and last_reservation.expires_at > timezone.now():
-                    logger.info(f'User {user.email} tried to generate another reservation code without activating the last one')
-                    return Response({
-                        'message': 'You cannot generate another reservation code until you activate or exit the current one, or until one hour has passed.'
-                    }, status=status.HTTP_400_BAD_REQUEST)
+        if active_reservation:
+            if active_reservation.activated_at:
+                logger.info(f'User {user.email} tried to generate another reservation code without exiting the last one')
+                return Response({
+                    'message': 'You cannot generate another reservation code until you (activate and exit) the current one, or until one hour has passed without (activate and exit).'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            if active_reservation.expires_at and active_reservation.expires_at > timezone.now():
+                logger.info(f'User {user.email} tried to generate another reservation code without activating the last one')
+                return Response({
+                    'message': 'You cannot generate another reservation code until you (activate and exit) the current one, or until one hour has passed without (activate and exit).'
+                }, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if there are already 4 active reservations globally
-        active_reservations = Reservation.objects.filter(exited_at__isnull=True, activated_at__isnull=False).count()
-        if active_reservations >= 4:
+        active_reservations_count = Reservation.objects.filter(exited_at__isnull=True, activated_at__isnull=False).count()
+        if active_reservations_count >= 4:
             logger.info('All slots are reserved')
             return Response({'message': 'All slots are reserved'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -253,3 +258,6 @@ class PasswordResetAPIView(APIView):
             return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
         logger.error('Password reset validation failed')
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+#3###

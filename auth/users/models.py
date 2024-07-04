@@ -35,13 +35,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+def default_expires_at():
+    return timezone.now() + datetime.timedelta(hours=1)
+
 class Reservation(models.Model):
     user = models.ForeignKey(User, related_name='reservations', on_delete=models.CASCADE)
     reservation_code = models.CharField(max_length=4, unique=True)
     reserved_at = models.DateTimeField(auto_now_add=True)
     activated_at = models.DateTimeField(blank=True, null=True)
     exited_at = models.DateTimeField(blank=True, null=True)
-    expires_at = models.DateTimeField(null=True, blank=True, default=timezone.now() + timezone.timedelta(hours=1))  # Allow NULL values
+    expires_at = models.DateTimeField(default=default_expires_at, blank=True, null=True)  # Allow NULL values
 
     def __str__(self):
         return self.reservation_code
