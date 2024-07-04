@@ -99,8 +99,15 @@ class ReserveSlotAPIView(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             if active_reservation.expires_at and active_reservation.expires_at > timezone.now():
+                
                 reservation_code = active_reservation.reservation_code
-                expires_at = active_reservation.expires_at.strftime(' %H:%M '+'at'+' %d-%b-%Y')  # Format datetime without microseconds and timezone
+                
+                # Convert the expiration time to Egypt Standard Time (UTC+2)
+                egypt_timezone = pytz.timezone('Africa/Cairo')
+                expires_at_utc = active_reservation.expires_at
+                expires_at_egypt = expires_at_utc.astimezone(egypt_timezone)
+                expires_at_formatted = expires_at_egypt.strftime('%H:%M at %d-%b-%Y')  # Format datetime with month abbreviation
+                
                 logger.info(f'User {user.email} tried to generate another reservation code without activating the last one')
                 return Response({
                     'message': 'You already have a reservation code: {' + f' {reservation_code} ' + '} and it expires at:' + f'{expires_at}'
