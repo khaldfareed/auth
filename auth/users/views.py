@@ -106,12 +106,8 @@ class ReserveSlotAPIView(APIView):
         # Create new reservation
         expires_at = timezone.now() + datetime.timedelta(hours=1)
         reservation_code = '{:04d}'.format(random.randint(0, 9999))
-        reservation = Reservation.objects.create(
-            user=user,
-            reservation_code=reservation_code,
-            expires_at=expires_at,
-            reserved_at=timezone.now()
-        )
+        reservation = Reservation.objects.create(user=user, reservation_code=reservation_code, expires_at=expires_at,
+                                                 reserved_at=timezone.now())
         serializer = ReservationSerializer(reservation)
         logger.info(f'Reservation created for user {user.email} with code {reservation_code}')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -169,7 +165,23 @@ class ExitSlotInnerAPIView(APIView):
             duration = reservation.calculate_duration()
             logger.debug("Reservation duration calculated: %s", duration)
 
-            return Response({'message': 'Exited', 'duration': duration}, status=status.HTTP_200_OK)
+            # Generate a new reservation code for the user
+            expires_at = timezone.now() + datetime.timedelta(hours=1)
+            new_reservation_code = '{:04d}'.format(random.randint(0, 9999))
+            new_reservation = Reservation.objects.create(
+                user=reservation.user,
+                reservation_code=new_reservation_code,
+                expires_at=expires_at,
+                reserved_at=timezone.now()
+            )
+            serializer = ReservationSerializer(new_reservation)
+            logger.info(f'New reservation created for user {reservation.user.email} with code {new_reservation_code}')
+
+            return Response({
+                'message': 'Exited',
+                'duration': duration,
+                'new_reservation_code': new_reservation_code
+            }, status=status.HTTP_200_OK)
 
         except Reservation.DoesNotExist:
             logger.warning("Invalid reservation code: %s", code)
