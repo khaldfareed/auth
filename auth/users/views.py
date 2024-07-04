@@ -106,8 +106,12 @@ class ReserveSlotAPIView(APIView):
         # Create new reservation
         expires_at = timezone.now() + datetime.timedelta(hours=1)
         reservation_code = '{:04d}'.format(random.randint(0, 9999))
-        reservation = Reservation.objects.create(user=user, reservation_code=reservation_code, expires_at=expires_at,
-                                                 reserved_at=timezone.now())
+        reservation = Reservation.objects.create(
+            user=user,
+            reservation_code=reservation_code,
+            expires_at=expires_at,
+            reserved_at=timezone.now()
+        )
         serializer = ReservationSerializer(reservation)
         logger.info(f'Reservation created for user {user.email} with code {reservation_code}')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
