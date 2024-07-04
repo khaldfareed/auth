@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.static',
+    'django.contrib.staticfiles',
     'rest_framework',
     'users',
     'corsheaders', #makes sure frontend connected with django
@@ -119,7 +119,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_ROOT = BASE_DIR / 'static'  # Replace with your desired path
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Replace with your desired path
 STATIC_URL = '/static/'
 
 # Default primary key field type
