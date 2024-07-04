@@ -144,9 +144,9 @@ EMAIL_HOST = 'smtp.office365.com'  # Outlook SMTP server
 EMAIL_PORT = 587  # TLS port
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False  # Outlook uses TLS, not SSL
-EMAIL_HOST_USER = 'KhaledCse2024@outlook.com'  # Your Outlook email address
-EMAIL_HOST_PASSWORD = 'KhaledCse123'  # Your Outlook email password
-DEFAULT_FROM_EMAIL = 'KhaledCse2024@outlook.com'  # Default sender email
+EMAIL_HOST_USER = 'KhaldCse@outlook.com'  # Your Outlook email address
+EMAIL_HOST_PASSWORD = 'SAdsa213'  # Your Outlook email password
+DEFAULT_FROM_EMAIL = 'KhaldCse@outlook.com'  # Default sender email
 
 
 LOGGING = {

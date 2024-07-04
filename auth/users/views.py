@@ -2,15 +2,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import User, Reservation
-from .serializers import UserSerializer, ReservationSerializer
+from .serializers import UserSerializer, ReservationSerializer, PasswordResetRequestSerializer, PasswordResetSerializer
 from rest_framework.exceptions import AuthenticationFailed
 import jwt
 import datetime
-from datetime import timedelta
 from django.utils import timezone
 import random
 import logging
-from .serializers import PasswordResetRequestSerializer, PasswordResetSerializer
 from django.core.mail import send_mail
 
 logger = logging.getLogger(__name__)
@@ -35,8 +33,8 @@ class LoginAPIView(APIView):
             raise AuthenticationFailed('Invalid credentials')
         payload = {
             'id': user.id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
-            'iat': datetime.datetime.utcnow()
+            'exp': timezone.now() + datetime.timedelta(minutes=60),
+            'iat': timezone.now()
         }
         token = jwt.encode(payload, 'secret', algorithm='HS256')
         response = Response()
@@ -72,6 +70,7 @@ class LogoutView(APIView):
         logger.info('User logged out')
         return response
 
+
 class ReserveSlotAPIView(APIView):
     def post(self, request):
         token = request.COOKIES.get('jwt')
@@ -83,32 +82,32 @@ class ReserveSlotAPIView(APIView):
         except jwt.ExpiredSignatureError:
             logger.warning('Expired JWT token')
             raise AuthenticationFailed("Unauthenticated")
+
         user = User.objects.get(id=payload['id'])
 
-        # Check if the user already has an active or non-exited reservation
-        existing_reservation = Reservation.objects.filter(
+        # Check if there is a recent reservation code generated for this user
+        last_reservation = Reservation.objects.filter(
             user=user,
-            exited_at__isnull=True,
-            activated_at__isnull=False
+            reserved_at__gte=timezone.now() - datetime.timedelta(hours=1)
         ).first()
 
-        if existing_reservation:
-            logger.info(f'User {user.email} tried to reserve another slot while having an active reservation')
+        if last_reservation:
+            logger.info(f'User {user.email} tried to generate another reservation code within one hour')
             return Response({
-                'message': 'You already have an active reservation. You cannot reserve another slot until it is exited or expired.'},
-                status=status.HTTP_400_BAD_REQUEST)
+                'message': 'You cannot generate another reservation code until one hour has passed.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check for available slots
+        # Check if there are already 4 active reservations globally
         active_reservations = Reservation.objects.filter(exited_at__isnull=True, activated_at__isnull=False).count()
         if active_reservations >= 4:
             logger.info('All slots are reserved')
             return Response({'message': 'All slots are reserved'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Create new reservation
         expires_at = timezone.now() + datetime.timedelta(hours=1)
-
-        # Generate a 4-digit reservation code
         reservation_code = '{:04d}'.format(random.randint(0, 9999))
-        reservation = Reservation.objects.create(user=user, reservation_code=reservation_code, expires_at=expires_at)
+        reservation = Reservation.objects.create(user=user, reservation_code=reservation_code, expires_at=expires_at,
+                                                 reserved_at=timezone.now())
         serializer = ReservationSerializer(reservation)
         logger.info(f'Reservation created for user {user.email} with code {reservation_code}')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -129,7 +128,7 @@ class ActivateSlotOuterAPIView(APIView):
                 logger.info("Reservation already activated: %s", code)
                 return Response({'message': 'Already activated'}, status=status.HTTP_400_BAD_REQUEST)
 
-            if reservation.expires_at < timezone.now():
+            if reservation.expires_at and reservation.expires_at < timezone.now():
                 logger.info("Reservation code expired: %s", code)
                 return Response({'message': 'Reservation code expired'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -171,7 +170,6 @@ class ExitSlotInnerAPIView(APIView):
         except Reservation.DoesNotExist:
             logger.warning("Invalid reservation code: %s", code)
             return Response({'message': 'Invalid code'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class ReservationHistoryAPIView(APIView):
     def get(self, request):
@@ -220,7 +218,7 @@ class PasswordResetRequestAPIView(APIView):
                 send_mail(
                     'Password Reset Request',
                     f'Your password reset code is: {reset_token}',
-                    'KhaledCse2024@outlook.com',
+                    'KhaldCse@outlook.com',
                     [user.email],
                     fail_silently=False,
                 )
