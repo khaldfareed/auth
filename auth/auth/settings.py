@@ -163,5 +163,9 @@ LOGGING = {
     },
 }
 
+# Session settings
+SESSION_COOKIE_AGE = 36000  # 10 hour in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session does not expire when the browser is closed
+
 
 APPEND_SLASH = False
