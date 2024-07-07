@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterAPIView, LoginAPIView, UserView, LogoutView, ReserveSlotAPIView, ActivateSlotOuterAPIView, ExitSlotInnerAPIView, ReservationHistoryAPIView, FreeSlotsAPIView, ActiveSlotsAPIView, PasswordResetRequestAPIView, PasswordResetAPIView
+from .views import RegisterAPIView, LoginAPIView, UserView, LogoutView, ReserveSlotAPIView, ActivateSlotOuterAPIView, ExitSlotInnerAPIView, ReservationHistoryAPIView, FreeSlotsAPIView, ActiveSlotsAPIView, PasswordResetRequestAPIView, PasswordResetAPIView, ReceiveReservationCodeAPIView
 
 
 urlpatterns = [
@@ -15,4 +15,5 @@ urlpatterns = [
     path('active/', ActiveSlotsAPIView.as_view(), name='active'),
     path('password-reset-request/', PasswordResetRequestAPIView.as_view(), name='password-reset-request'),
     path('password-reset/', PasswordResetAPIView.as_view(), name='password-reset'),
+    path('receive-reservation-code/', ReceiveReservationCodeAPIView.as_view(), name='receive-reservation-code'),
 ]
