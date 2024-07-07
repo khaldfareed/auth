@@ -133,7 +133,21 @@ class ReserveSlotAPIView(APIView):
         logger.info(f'Reservation created for user {user.email} with code {reservation_code}')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+class ReceiveReservationCodeAPIView(APIView):
+    def post(self, request):
+        reservation_code = request.data.get('reservation_code')
+        user_email = request.data.get('user_email')
 
+        if not reservation_code or not user_email:
+            logger.warning('Invalid data received')
+            return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Process the received reservation code and user email
+        logger.info(f'Received reservation code {reservation_code} for user {user_email}')
+
+        # Add your processing logic here
+
+        return Response({'message': 'Reservation code received successfully'}, status=status.HTTP_200_OK)
 
 class ActivateSlotOuterAPIView(APIView):
     """
