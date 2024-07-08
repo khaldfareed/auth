@@ -141,12 +141,19 @@ class ReceiveReservationCodeAPIView(APIView):
             logger.warning('Invalid data received')
             return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Process the received reservation code and user email
+        # Process the received reservation code
         logger.info(f'Received reservation code {reservation_code}')
 
-        # Add your processing logic here
+        try:
+            reservation = Reservation.objects.get(reservation_code=reservation_code)
+            reservation.payment_received = True  # Mark the reservation as paid
+            reservation.save()
+            logger.info(f'Payment received for reservation code {reservation_code}')
+            return Response({'message': 'Reservation code received successfully'}, status=status.HTTP_200_OK)
 
-        return Response({'message': 'Reservation code received successfully'}, status=status.HTTP_200_OK)
+        except Reservation.DoesNotExist:
+            logger.warning(f'Reservation code not found: {reservation_code}')
+            return Response({'message': 'Invalid reservation code'}, status=status.HTTP_400_BAD_REQUEST)
 
 class ActivateSlotOuterAPIView(APIView):
     """
@@ -194,14 +201,20 @@ class ExitSlotInnerAPIView(APIView):
                 logger.info("Reservation already exited: %s", code)
                 return Response({'message': 'Already exited'}, status=status.HTTP_400_BAD_REQUEST)
 
-            reservation.exited_at = timezone.now()
-            reservation.save()
-            logger.info("Reservation exited successfully: %s at the inner screen", code)
+            # Verify reservation code with the one received in ReceiveReservationCodeAPIView
+            received_reservation_code = Reservation.objects.filter(reservation_code=code, payment_received=True).exists()
+            if received_reservation_code:
+                reservation.exited_at = timezone.now()
+                reservation.save()
+                logger.info("Reservation exited successfully: %s at the inner screen", code)
 
-            duration = reservation.calculate_duration()
-            logger.debug("Reservation duration calculated: %s", duration)
+                duration = reservation.calculate_duration()
+                logger.debug("Reservation duration calculated: %s", duration)
 
-            return Response({'message': 'Exited', 'duration': duration}, status=status.HTTP_200_OK)
+                return Response({'message': 'Exited', 'duration': duration}, status=status.HTTP_200_OK)
+            else:
+                logger.warning("Payment required for reservation code: %s", code)
+                return Response({'message': 'You must pay first'}, status=status.HTTP_400_BAD_REQUEST)
 
         except Reservation.DoesNotExist:
             logger.warning("Invalid reservation code: %s", code)

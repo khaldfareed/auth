@@ -45,7 +45,7 @@ class Reservation(models.Model):
     activated_at = models.DateTimeField(blank=True, null=True)
     exited_at = models.DateTimeField(blank=True, null=True)
     expires_at = models.DateTimeField(default=default_expires_at, blank=True, null=True)  # Allow NULL values
-
+    payment_received = models.BooleanField(default=False)  # New field to track payment status
     def __str__(self):
         return self.reservation_code
 
