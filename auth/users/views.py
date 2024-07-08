@@ -136,14 +136,13 @@ class ReserveSlotAPIView(APIView):
 class ReceiveReservationCodeAPIView(APIView):
     def post(self, request):
         reservation_code = request.data.get('reservation_code')
-        user_email = request.data.get('user_email')
 
-        if not reservation_code or not user_email:
+        if not reservation_code:
             logger.warning('Invalid data received')
             return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Process the received reservation code and user email
-        logger.info(f'Received reservation code {reservation_code} for user {user_email}')
+        logger.info(f'Received reservation code {reservation_code})
 
         # Add your processing logic here
 
