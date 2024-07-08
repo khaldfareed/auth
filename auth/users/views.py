@@ -142,7 +142,7 @@ class ReceiveReservationCodeAPIView(APIView):
             return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Process the received reservation code and user email
-        logger.info(f'Received reservation code {reservation_code})
+        logger.info(f'Received reservation code {reservation_code}')
 
         # Add your processing logic here
 
