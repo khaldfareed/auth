@@ -214,7 +214,7 @@ class ExitSlotInnerAPIView(APIView):
                 return Response({'message': 'Exited', 'duration': duration}, status=status.HTTP_200_OK)
             else:
                 logger.warning("Payment required for reservation code: %s", code)
-                return Response({'message': 'You must pay first'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'please check our app,and complete your pending payment.'}, status=status.HTTP_400_BAD_REQUEST)
 
         except Reservation.DoesNotExist:
             logger.warning("Invalid reservation code: %s", code)
