@@ -201,24 +201,54 @@ class ExitSlotInnerAPIView(APIView):
                 logger.info("Reservation already exited: %s", code)
                 return Response({'message': 'Already exited'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Verify reservation code with the one received in ReceiveReservationCodeAPIView
-            received_reservation_code = Reservation.objects.filter(reservation_code=code, payment_received=True).exists()
-            if received_reservation_code:
-                reservation.exited_at = timezone.now()
+            # Check if user is attempting to exit within 5 minutes of exit_attempted_at
+            if reservation.exit_attempted_at:
+                time_since_exit_attempt = timezone.now() - reservation.exit_attempted_at
+                if time_since_exit_attempt.total_seconds() / 60 > 5:
+                    extra_duration = reservation.calculate_extra_duration()
+                    reservation.payment_received = False
+                    reservation.exit_attempted_at = timezone.now()
+                    reservation.save()
+                    logger.warning("Exit attempt exceeded 10 minutes for reservation code: %s", code)
+                    return Response({
+                        'message': 'Please complete your pending payment through our app.',
+                        'new_duration': reservation.calculate_duration(),
+                        'extra_duration': extra_duration
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Record the exit attempt time if not already recorded
+            if not reservation.exit_attempted_at:
+                reservation.exit_attempted_at = timezone.now()
                 reservation.save()
-                logger.info("Reservation exited successfully: %s at the inner screen", code)
+                logger.info("Exit attempt recorded for reservation code: %s", code)
 
-                duration = reservation.calculate_duration()
-                logger.debug("Reservation duration calculated: %s", duration)
-
-                return Response({'message': 'Exited', 'duration': duration}, status=status.HTTP_200_OK)
+            # Calculate duration from activation to exit attempt time
+            if reservation.activated_at and reservation.exit_attempted_at:
+                duration = (reservation.exit_attempted_at - reservation.activated_at).total_seconds() / 60
+            elif reservation.activated_at:
+                duration = (timezone.now() - reservation.activated_at).total_seconds() / 60
             else:
+                duration = None
+
+            # Check if payment is received
+            if not reservation.payment_received:
                 logger.warning("Payment required for reservation code: %s", code)
-                return Response({'message': 'please check our app,and complete your pending payment.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    'message': 'Please complete your pending payment through our app.',
+                    'duration': duration
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Payment received, allow exit and update exit time
+            reservation.exited_at = timezone.now()
+            reservation.save()
+            logger.info("Reservation exited successfully: %s at the inner screen", code)
+
+            return Response({'message': 'Exited', 'duration': duration}, status=status.HTTP_200_OK)
 
         except Reservation.DoesNotExist:
             logger.warning("Invalid reservation code: %s", code)
             return Response({'message': 'Invalid code'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ReservationHistoryAPIView(APIView):
     def get(self, request):

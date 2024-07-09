@@ -46,12 +46,19 @@ class Reservation(models.Model):
     exited_at = models.DateTimeField(blank=True, null=True)
     expires_at = models.DateTimeField(default=default_expires_at, blank=True, null=True)  # Allow NULL values
     payment_received = models.BooleanField(default=False)  # New field to track payment status
+    duration = models.FloatField(blank=True, null=True)  # New field to store the duration
+    exit_attempted_at = models.DateTimeField(blank=True, null=True)  # New field to store exit attempt time
     def __str__(self):
         return self.reservation_code
 
     def calculate_duration(self):
-        if self.activated_at and self.exited_at:
-            return (self.exited_at - self.activated_at).total_seconds() / 60
+        if self.activated_at and self.exit_attempted_at:
+            return (self.exit_attempted_at - self.activated_at).total_seconds() / 60
         elif self.activated_at:
             return (timezone.now() - self.activated_at).total_seconds() / 60
         return None
+
+    def calculate_extra_duration(self):
+        if self.exit_attempted_at:
+            return (timezone.now() - self.exit_attempted_at).total_seconds() / 60
+        return 0
