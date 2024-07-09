@@ -276,6 +276,7 @@ class FreeSlotsAPIView(APIView):
         return Response({'free_slots': free_slots}, status=status.HTTP_200_OK)
 
 class ActiveSlotsAPIView(APIView):
+    permission_classes = [IsAdminUser]
     def get(self, request):
         active_reservations = Reservation.objects.filter(activated_at__isnull=False, exited_at__isnull=True)
         serializer = ReservationSerializer(active_reservations, many=True)
