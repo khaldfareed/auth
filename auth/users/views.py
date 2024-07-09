@@ -4,6 +4,7 @@ from rest_framework import status
 from .models import User, Reservation
 from .serializers import UserSerializer, ReservationSerializer, PasswordResetRequestSerializer, PasswordResetSerializer
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.permissions import IsAdminUser
 import jwt
 import datetime
 from django.utils import timezone
