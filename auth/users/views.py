@@ -21,7 +21,7 @@ class RegisterAPIView(APIView):
         if serializer.is_valid():
             serializer.save()
             logger.info(f'User registered with email: {serializer.data["email"]}')
-            return Response(serializer.data, status=status.HTTP_200_CREATED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         logger.error('User registration failed')
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
